@@ -1,5 +1,6 @@
 import itertools
 import random
+import copy
 
 
 class Minesweeper():
@@ -32,6 +33,7 @@ class Minesweeper():
 
         # At first, player has found no mines
         self.mines_found = set()
+        print(f"The mines on the board are: {self.mines}")
 
     def print(self):
         """
@@ -108,7 +110,8 @@ class Sentence():
         if len(self.cells) == self.count:
             return self.cells
         else:
-            return ()
+            return set()
+
 
     def known_safes(self):
         """
@@ -117,7 +120,8 @@ class Sentence():
         if self.count == 0:
             return self.cells
         else:
-            return ()
+            return set()
+
 
     def mark_mine(self, cell):
         """
@@ -181,30 +185,39 @@ class MinesweeperAI():
 
     # helper function to create new inferences based on updated knowledge
     def update_knowledge(self):
+        to_remove = []
         new_inferences = []
-        print("Knowledge before update: ")
-        for sentence in self.knowledge:
-            print(sentence)
 
         for sentence in self.knowledge:
+            if sentence.cells == set():
+                to_remove.append(sentence)
             for sentence1 in self.knowledge:
-                # only execute if sentences being compared are different
+                if sentence1.cells == set():
+                    to_remove.append(sentence1)
+
+                # only look for inferences if sentences are different
                 if sentence != sentence1:
                     # if sentence1 is a subset of sentence
                     if sentence1.cells.issubset(sentence.cells) and len(sentence1.cells) > 0 and len(sentence.cells) > 0:
                         new_inference_cells = sentence.cells - sentence1.cells
                         new_inference_count = sentence.count - sentence1.count
-                        new_inference = Sentence(new_inference_cells, new_inference_count)
-                        new_inferences.append(new_inference)
-                        print(f"NEW INFERENCE MADE: {new_inference}")
-                        print(f"Sentence that has a subset: {sentence}")
-                        print(f"Sentence that is a subset: {sentence1}")
+                        if len(new_inference_cells) > 0:
+                            new_inference = Sentence(new_inference_cells, new_inference_count)
+                            new_inferences.append(new_inference)
+                            #print(f"NEW INFERENCE MADE: {new_inference}")
+                            #print(f"Sentence that has a subset: {sentence}")
+                            #print(f"Sentence that is a subset: {sentence1}")
 
-        # avoid adding duplicate inferences
-        new_inferences_final = [item for item in new_inferences if item not in self.knowledge]
 
         #print(f"The new inferences are: {new_inferences_final}")
-        return new_inferences_final
+
+        # add new sentences to knowledge
+        for item in new_inferences:
+            if item not in self.knowledge:
+                self.knowledge.append(item)
+
+        # remove empty sentences from knowledge
+        self.knowledge = [item for item in self.knowledge if len(item.cells) != 0]
 
 
     def add_knowledge(self, cell, count):
@@ -229,27 +242,22 @@ class MinesweeperAI():
         self.mark_safe(cell)
 
         # create new sentence based on cell and count
-        cells_in_sentence = []
+        cells_in_sentence = set()
 
         # Iterate over neighbouring cells (being mindful of the bounds of the board)
         for i in range(max(cell[0] - 1, 0), min(cell[0] + 2, self.height)):
             for j in range(max(cell[1] - 1, 0), min(cell[1] + 2, self.width)):
                 # check if the cell is already known as a mine or a safe or if move already made
-                if (i, j) not in self.mines and (i, j) not in self.safes and (i, j) not in self.moves_made:
+                if (i, j) not in self.safes and (i, j) not in self.moves_made and (i, j) != cell:
                     # if cell not a known mine or safe, add it to sentence
-                    cells_in_sentence.append((i, j))
+                    cells_in_sentence.add((i, j))
 
         # construct new sentence
-        new_sentence = Sentence(set(cells_in_sentence), count)
+        new_sentence = Sentence(cells_in_sentence, count)
 
-        # update new sentence for any mines/safes that we're aware of
-        for mine in self.mines:
-            new_sentence.mark_mine(mine)
-        for safe in self.safes:
-            new_sentence.mark_safe(safe)
 
-        print(f"The new sentence is: {new_sentence}")
-        # add new sentence to knowledge if it doesn't already exist
+        #print(f"The new sentence is: {new_sentence}")
+        # add new sentence to knowledge
         if new_sentence not in self.knowledge:
             self.knowledge.append(new_sentence)
 
@@ -257,22 +265,24 @@ class MinesweeperAI():
         new_safes = set()
         new_mines = set()
         for sentence in self.knowledge:
-            new_safes.update(sentence.known_safes())
-            new_mines.update(sentence.known_mines())
+            if sentence.known_safes() != None:
+                new_safes.update(sentence.known_safes())
+            if sentence.known_mines() != None:
+                new_mines.update(sentence.known_mines())
 
         for cell in new_safes:
             self.mark_safe(cell)
         for cell in new_mines:
             self.mark_mine(cell)
 
-        print(f"The new safes are: {new_safes}")
-        print(f"The new mines are: {new_mines}")
+
+        #print(f"The new safes are: {new_safes}")
+        #print(f"The new mines are: {new_mines}")
         print(f"All the current safes are: {self.safes}")
+        print(f"All the current mines are: {self.mines}")
 
         # infer knew knowledge if possible and add it to AI's knowledge base
-        new_knowledge = self.update_knowledge()
-        self.knowledge += new_knowledge
-
+        self.update_knowledge()
 
     def make_safe_move(self):
         """
@@ -307,4 +317,8 @@ class MinesweeperAI():
                     available_cells.append((i, j))
 
         # return random cell that satisfies the conditions
-        return random.choice(available_cells)
+
+        if len(available_cells) != 0:
+            return random.choice(available_cells)
+        else:
+            return None

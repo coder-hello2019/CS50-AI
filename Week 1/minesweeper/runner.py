@@ -212,10 +212,10 @@ while True:
 
     # Make move and update AI knowledge
     if move:
+        print(f"The move made: {move}")
         if game.is_mine(move):
             lost = True
         else:
-            print(f"The move made: {move}")
             nearby = game.nearby_mines(move)
             revealed.add(move)
             ai.add_knowledge(move, nearby)
