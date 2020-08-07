@@ -33,7 +33,6 @@ class Minesweeper():
 
         # At first, player has found no mines
         self.mines_found = set()
-        print(f"The mines on the board are: {self.mines}")
 
     def print(self):
         """
@@ -164,6 +163,9 @@ class MinesweeperAI():
         # List of sentences about the game known to be true
         self.knowledge = []
 
+        self.random_moves = 0
+        self.safe_moves = 0
+
     def mark_mine(self, cell):
         """
         Marks a cell as a mine, and updates all knowledge
@@ -278,8 +280,8 @@ class MinesweeperAI():
 
         #print(f"The new safes are: {new_safes}")
         #print(f"The new mines are: {new_mines}")
-        print(f"All the current safes are: {self.safes}")
-        print(f"All the current mines are: {self.mines}")
+        #print(f"All the current safes are: {self.safes}")
+        #print(f"All the current mines are: {self.mines}")
 
         # infer knew knowledge if possible and add it to AI's knowledge base
         self.update_knowledge()
@@ -293,6 +295,9 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
+
+        self.safe_moves += 1
+
         # consider all safe moves
         for move in self.safes:
             # ensure that move not already made
@@ -309,6 +314,9 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
+
+        self.random_moves += 1
+
         available_cells = []
         # add cells that haven't been chose yet and are not known to be mines to a list we'll randomly choose from
         for i in range(self.height):
