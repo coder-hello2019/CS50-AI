@@ -16,6 +16,7 @@ def main():
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
+
     ranks = iterate_pagerank(corpus, DAMPING)
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
@@ -133,15 +134,15 @@ def iterate_pagerank(corpus, damping_factor):
     while any(item for item in update_needed.values()):
         # iterate over pages in corpus
         for page in PageRank:
-            # find pages that link to the current page
-            neighbouring_pages = dict((site, links) for site,links in corpus.items() if page in links)
+            # find pages that link to the current page (or pages with no links which we treat as linking to all the pages)
+            neighbouring_pages = dict((site, links) for site,links in corpus.items() if page in links or links == set())
 
             # calculate PRs/weightings for neighbouring pages
             epsilon = 0
             for neighbour in neighbouring_pages:
                 # if neighbour links to no pages, interpret the page as having one link for every page in corpus
-                if len(corpus[neighbour]) == 0:
-                    epsilon += (PageRank[neighbour]/len(corpus))
+                if corpus[neighbour] == set():
+                     epsilon += (PageRank[neighbour]/len(corpus))
                 else:
                     epsilon += (PageRank[neighbour]/len(corpus[neighbour]))
             # calculate new PR and update PR dict
