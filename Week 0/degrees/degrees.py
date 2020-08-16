@@ -91,9 +91,6 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
-    # keep track of number of states explored
-    num_explored = 0
-
     # error checking - return immediately if source is same as target (0 degrees of separation)
     if source == target:
         return []
@@ -131,6 +128,7 @@ def shortest_path(source, target):
             # else, add child to frontier
             elif person_id not in explored and not frontier.contains_state(person_id):
                 frontier.add(child)
+
 
 def person_id_for_name(name):
     """
