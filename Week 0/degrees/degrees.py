@@ -117,7 +117,7 @@ def shortest_path(source, target):
         # if currentNode is not the target, explore its children/add neighbours to frontier (provided we've not explored them yet/state is not already in frontier)
         for movie_id, person_id in neighbors_for_person(currentNode.state):
             child = Node(state=person_id, parent=currentNode, action=movie_id)
-            # if child node is the target, return without adding it to frontier (optimisation from problem spec)
+            # if child node is the target, return without adding it to frontier (optimisation from prob spec)
             if child.state == target:
                 result = []
                 while child.parent is not None:
