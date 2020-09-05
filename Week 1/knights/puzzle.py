@@ -28,7 +28,7 @@ knowledge0 = And(
 # B says nothing.
 knowledge1 = And(
     # information about the world
-    # both A and B can only be a knight or a knaves but not both at once
+    # both A and B can only be a knight or a knave but not both at once
     Or(AKnight, AKnave),
     Or(BKnight, BKnave),
     Not(And(AKnight, AKnave)),
